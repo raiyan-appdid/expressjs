@@ -1,4 +1,5 @@
 const express = require("express");
+var cors = require("cors");
 const mysql = require("mysql");
 
 const db = mysql.createConnection({
@@ -20,6 +21,8 @@ db.connect((err) => {
 });
 const app = express();
 app.use(express.json());
+app.use(cors());
+
 app.get("/", function (req, res) {
   res.status(200).send({
     id: 10,
@@ -37,6 +40,7 @@ app.post("/example", function (req, res) {
 });
 
 app.post("/store", function (req, res) {
+  console.log(req.body);
   const { title } = req.body;
   const { description } = req.body;
 
@@ -46,14 +50,14 @@ app.post("/store", function (req, res) {
       res.send("Column not created..");
       console.log(err);
     } else {
-      res.send("Column Inserted..");
+      res.send(result);
     }
     console.log(result);
   });
 });
 
 app.get("/all", function (req, res) {
-  let sql = "select * from posts;";
+  let sql = "select * from posts ORDER BY id DESC;";
   db.query(sql, (err, result) => {
     if (err) {
       res.send("Could not get");
@@ -87,6 +91,22 @@ app.delete("/delete/:id", function (req, res) {
       res.send("Deleted Successfully");
     }
   });
+});
+
+app.post("/update/:id", function (req, res) {
+  const { id } = req.params;
+  const { title } = req.body;
+  const { description } = req.body;
+  let sql = `UPDATE posts SET title="${title}", description="${description}" where id=${id};`;
+  db.query(sql, function (err, result) {
+    if (err) {
+      res.send("Failed");
+      console.log(err);
+    } else {
+      res.send("Deleted Successfully");
+    }
+  });
+  // res.send("Deleted Successfully");
 });
 
 app.get("/createdb", function (req, res) {
